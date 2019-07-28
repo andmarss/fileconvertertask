@@ -110,9 +110,9 @@ class Template
         preg_match_all('/(\s*)@forelse(\s*\(.*\))(\s*)/', $value, $matches);
 
         foreach ($matches[0] as $forelse) {
-            preg_match('/\$[^\s]*/', $forelse, $variable);
+            preg_match('/\@forelse\(([^\s]+)+\s+as\s+([^\)]+)\)/', $forelse, $variable);
 
-            $if = "<?php if (count({$variable[0]}) > 0): ?>";
+            $if = "<?php if (count({$variable[1]}) > 0): ?>";
 
             $search = '/(\s*)@forelse(\s*\(.*\))/';
 
@@ -208,7 +208,7 @@ class Template
 
     protected function compile_yields($value)
     {
-        return preg_replace( $this->matcher('yield') , '$1<?=\\App\\Section::yield$2; ?>', $value);
+        return preg_replace( $this->matcher('yield') , '$1<?=\\App\\System\\Template\\Section::yield$2; ?>', $value);
     }
 
     /**
@@ -221,7 +221,7 @@ class Template
     protected function compile_yield_sections($value)
     {
         return str_replace('@yield_section',
-            '<?php echo \\App\\Section::yield_section(); ?>',
+            '<?php echo \\App\\System\\Template\\Section::yield_section(); ?>',
             $value);
     }
 
@@ -234,7 +234,7 @@ class Template
 
     protected function compile_section_start($value)
     {
-        return preg_replace( $this->matcher('section'), '$1<?php \\App\\Section::start$2; ?>', $value );
+        return preg_replace( $this->matcher('section'), '$1<?php \\App\\System\\Template\\Section::start$2; ?>', $value );
     }
 
     /**
@@ -246,7 +246,7 @@ class Template
 
     protected function compile_section_end($value)
     {
-        return preg_replace( '/@endsection/', '$1<?php \\App\\Section::stop(); ?>', $value );
+        return preg_replace( '/@endsection/', '$1<?php \\App\\System\\Template\\Section::stop(); ?>', $value );
     }
 
     /**

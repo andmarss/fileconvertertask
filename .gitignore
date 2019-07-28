@@ -4,3 +4,4 @@
 /storage/*.key
 /vendor
 /.idea
+/storage/cache

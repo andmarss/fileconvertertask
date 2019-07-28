@@ -65,3 +65,8 @@ function asset($path): string
 {
     return domain(). '/content/' . $path;
 }
+
+function response()
+{
+    return new \App\System\Response();
+}

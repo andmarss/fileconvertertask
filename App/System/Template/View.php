@@ -2,7 +2,6 @@
 
 namespace App\System\Template;
 
-
 use App\System\Session;
 
 class View
@@ -110,7 +109,7 @@ class View
         try {
             require $this->path;
         } catch (\Exception $e) {
-            ob_get_clean(); throw $e;
+            return ob_get_clean();
         }
 
         return ob_get_clean();
@@ -145,6 +144,10 @@ class View
         return new static($view, $data);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function __toString()
     {
         return $this->render();

@@ -18,7 +18,7 @@ class Session
      * @param $value
      * @return mixed
      */
-    public function put(?string $key, $value)
+    protected function put(?string $key, $value)
     {
        if($key && !is_null($value)) {
            $_SESSION[$key] = $value;
@@ -33,7 +33,7 @@ class Session
      * @param string|null $key
      * @return bool
      */
-    public function exists(?string $key): bool
+    protected function exists(?string $key): bool
     {
        return isset($_SESSION[$key]);
     }
@@ -43,7 +43,7 @@ class Session
      * @param string|null $key
      * @return bool
      */
-    public function has(?string $key): bool
+    protected function has(?string $key): bool
     {
        return $this->exists($key);
     }
@@ -56,7 +56,7 @@ class Session
      * @param string $value
      * @return mixed|Session
      */
-    public function flash(?string $key, ?string $value = '')
+    protected function flash(?string $key, ?string $value = '')
     {
        if($this->exists($key)) {
            $value = $this->get($key);
@@ -77,7 +77,7 @@ class Session
      * @param string|null $key
      * @return mixed|null
      */
-    public function get(?string $key)
+    protected function get(?string $key)
     {
        return $this->exists($key) ? $_SESSION[$key] : null;
     }
@@ -86,7 +86,7 @@ class Session
      * @param $key
      * @return bool
      */
-    public function delete($key): bool
+    protected function delete($key): bool
     {
        if($this->exists($key)) {
            unset($_SESSION[$key]);
@@ -95,17 +95,34 @@ class Session
        return false;
     }
 
+    protected static function getInstance(): Session
+    {
+        if(!is_object(static::$instance)) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
+
     /**
      * @param $method
      * @param $args
      * @return Session
      */
-    public static function __callStatic($method, $args): Session
+    public static function __callStatic($method, $args)
     {
-        if(!static::$instance) {
-            static::$instance = new static();
-        }
+        return static::getInstance()->$method(...$args);
+    }
 
-        return static::$instance;
+    /**
+     * @param $method
+     * @param $args
+     * @return mixed
+     */
+    public function __call($method, $args)
+    {
+        if (method_exists($this, $method)) {
+            return $this->{$method}(...$args);
+        }
     }
 }

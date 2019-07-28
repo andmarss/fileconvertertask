@@ -1,9 +1,11 @@
 @extend('layer/index')
 
 @section('content')
-    @import('form/index')
+    <div class="container">
+        @import('form/index')
 
-    @import('')
+        @import('includes/loaded-archives')
+    </div>
 @endsection
 
 @section('overlay')

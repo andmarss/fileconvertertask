@@ -8,7 +8,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a href="{{route('index')}}" class="navbar-brand">
-                Задачник
+                Архивчик
             </a>
         </div>
     </div>

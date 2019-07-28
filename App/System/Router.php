@@ -2,8 +2,6 @@
 
 namespace App\System;
 
-use mysql_xdevapi\Exception;
-
 /**
  * Class Router
  * @package App\System
@@ -134,13 +132,16 @@ class Router
             return $this->call($this->routes[$method][$pattern], $parameters);
         } elseif ($pattern && $parameters && is_string($this->routes[$method][$pattern])) {
             // если ссылка была шаблоном, и в качестве обработчика была установлена строка с разделителем @
+            [$controller, $action] = explode('@', $this->routes[$method][$pattern]);
             return $this->callAction(
-                ...array_merge(explode('@', $this->routes[$method][$pattern]), $parameters)
+                $controller, $action, $parameters
             );
         } elseif(!$pattern && !$parameters && is_string($this->routes[$method][$uri])) {
             // если ссылка - не шаблон, и в качестве обработчика была установлена строка с разделителем @
+            [$controller, $action] = explode('@', $this->routes[$method][$uri]);
+
             return $this->callAction(
-                ...array_merge(explode('@', $this->routes[$method][$uri]), [])
+                $controller, $action, []
             );
         }
 
@@ -161,11 +162,6 @@ class Router
         static::$names[$name] = $this->uri;
 
         return $this;
-    }
-
-    protected function callRouteByName()
-    {
-
     }
 
     /**
@@ -324,7 +320,7 @@ class Router
                 }
             }
 
-            $pattern = preg_replace("\/+", '\\/', $pattern);
+            $pattern = preg_replace("/\/+/", '\\/', $pattern);
 
             if(preg_match_all("/\{[^\{\}]+\}/", $pattern)) {
                 $pattern = preg_replace('/\{[^\{\}]+\}/', "([^/]+)", $pattern);
@@ -372,11 +368,11 @@ class Router
      * @throws \Exception
      * @return string
      */
-    public function convertUri(string $name, array $data = []): string
+    protected function convertUri(string $name, array $data = []): string
     {
         if(!array_key_exists($name, static::$names)) {
             throw new \Exception("Имя маршрута \"$name\" не объявлено");
-            return;
+            return '';
         }
         /**
          * @var string $name
@@ -424,7 +420,13 @@ class Router
         preg_match_all('/' . $pattern . '/', $uri, $m); // применяем паттерн, получаем id, который был передан в маршрут
 
         if($m && isset($m[0])) {
-            return array_slice($m, 1);
+            return count(
+                array_filter(array_map(function (array $match){
+                    return (bool) $match[0];
+                }, array_slice($m, 1)), function (bool $match){
+                    return $match;
+                })
+            ) > 0;
         } else {
             return false;
         }
@@ -455,10 +457,10 @@ class Router
 
     /**
      * @param string $method
-     * @param \Countable $arguments
+     * @param array $arguments
      * @return mixed
      */
-    public function __call(string $method, \Countable $arguments)
+    public function __call(string $method, array $arguments)
     {
         /**
          * @var Router $instance
@@ -472,10 +474,10 @@ class Router
 
     /**
      * @param string $method
-     * @param \Countable $arguments
+     * @param array $arguments
      * @return mixed
      */
-    public static function __callStatic(string $method, \Countable $arguments)
+    public static function __callStatic(string $method, array $arguments)
     {
         /**
          * @var Router $instance

@@ -154,9 +154,9 @@ class Response
         return $this;
     }
 
-    public static function __callStatic()
+    public static function __callStatic(string $method, array $arguments)
     {
-        return new static();
+        return (new static())->{$method}(...$arguments);
     }
 
     public function __toString()
