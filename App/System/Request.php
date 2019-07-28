@@ -89,11 +89,16 @@ class Request
         if($name && isset($_GET[$name])) {
             return $_GET[$name];
         } else {
+            /**
+             * @var Router $instance
+             */
+            $instance = static::getInstance();
+
             foreach ($_GET as $key => $value) {
-                static::getInstance()->{$key} = $value;
+                $instance->{$key} = $value;
             }
 
-            return static::getInstance();
+            return $instance;
         }
     }
 

@@ -2,6 +2,10 @@
 
 use App\System\Router;
 
-Router::get('/', 'IndexController@index');
+Router::get('/', 'IndexController@index')->name('index');
 
-Router::post('/upload', 'IndexController@upload');
+Router::get('/download/{path}', 'IndexController@download')
+    ->where(['path' => '.+'])
+    ->name('download');
+
+Router::post('/upload', 'IndexController@upload')->name('upload');

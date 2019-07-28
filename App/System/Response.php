@@ -3,6 +3,7 @@
 
 namespace App\System;
 
+use App\System\Template\View;
 
 class Response
 {
@@ -115,6 +116,16 @@ class Response
         $headers['Content-Type'] = 'application/json';
 
         return new static(json_encode($data), $status, $headers);
+    }
+
+    /**
+     * @param string $path
+     * @param array $data
+     * @return View
+     */
+    public function view(string $path, array $data = []): View
+    {
+        return view($path, $data);
     }
 
     /**

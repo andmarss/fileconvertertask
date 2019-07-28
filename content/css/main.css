@@ -1,0 +1,215 @@
+.register-form {
+    margin-top: 60px;
+    box-shadow: 0 0 10px 1px grey;
+    border-radius: 5px;
+    padding-bottom: 20px;
+    background-color: #fff;
+}
+
+.login, .register {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.login .vertical-aligment, .register .vertical-aligment {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+.login .vertical-aligment .vertical-align-center, .register .vertical-aligment .vertical-align-center{
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.file-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: black;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.file-label {
+    background-color: #2ab27b;
+    border-color: #2ab27b;
+    color: #ffffff;
+    padding: 10px 15px;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+
+.file-label i {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.file-label:hover {
+    background-color: #20895E;
+    box-shadow: none;
+}
+
+.file-label:focus {
+    outline: none;
+}
+
+.preview {
+    width: 400px;
+    height: auto;
+}
+
+.preview img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.remove-image {
+    width: 5px;
+    height: 5px;
+    display: none;
+    vertical-align: middle;
+    color: #ccc;
+    cursor: pointer;
+    margin-bottom: 21px;
+}
+.remove-image i {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    color: #cccccc;
+}
+
+.remove-image:hover i {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    color: #8c8c8c;
+}
+
+.file-text {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.preview-btn {
+    margin-right: 15px;
+}
+
+#clone {
+    display: none;
+    position: relative;
+}
+
+.close-clone {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    width: 10px;
+    height: 10px;
+    font-size: 10px;
+    color: #ccc;
+}
+
+.close-clone i {
+    font-size: 10px;
+}
+
+.close-clone:hover i {
+    color: #8c8c8c;
+}
+
+.clone-image, .image {
+    width: 400px;
+    height: auto;
+}
+
+.w-35 {
+    width: 35%;
+}
+
+.search-form {
+    margin-bottom: 22px;
+}
+
+.search-form .text-right i {
+    display: inline-block; margin-right: 15px;
+}
+
+.search-form .text-right input {
+    margin-right: 15px;
+}
+
+.search-form-label {
+    margin-right: 15px;
+}
+
+#logout-form {
+    display: none;
+}
+
+.search-form {
+    margin-bottom: 20px;
+}
+
+.preview {
+    display: none;
+}
+
+#picture {
+    display: none;
+}
+
+.archive-content {
+    list-style-type: none;
+}
+
+.mr20 {
+    margin-right: 20px;
+}
+
+.h-300 {
+    max-height: 300px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000 !important;
+    background-color: rgba(0, 0, 0, .8);
+    color: #fff;
+}
+.overlay .overlay-content {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+.overlay .loader-wrapper {
+    margin-bottom: 1.5rem;
+}
+.overlay .overlay-text {
+    font-size: 1.5rem;
+}
+
+.unlink {
+    color: inherit;
+    text-decoration: none;
+}
