@@ -8,7 +8,10 @@
     ],
     "require": {
         "php": "7.1",
-        "ext-json": "*"
+        "ext-json": "*",
+        "ext-zip": "*",
+        "ext-rar": "*",
+        "ext-mbstring": "*"
     },
     "autoload": {
         "psr-4": {
