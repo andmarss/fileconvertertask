@@ -116,6 +116,28 @@ class File
     }
 
     /**
+     * @param string $path
+     * @param string $target
+     * @return bool
+     */
+    public static function copy(string $path, string $target): bool
+    {
+        return copy($path, $target);
+    }
+
+    public static function mime(string $extension, string $default = 'application/octet-stream'): string
+    {
+        /**
+         * @var array $mimes
+         */
+        $mimes = Config::get($extension);
+
+        if(!array_key_exists($extension, $mimes)) return $default;
+
+        return is_array($mimes[$extension]) ? current($mimes[$extension]) : $mimes[$extension];
+    }
+
+    /**
      * Путь к корню директории проекта
      */
 
@@ -185,7 +207,7 @@ class File
      * Проверяет, изменился ли исходный файл по отношению к скомпилированному
      */
 
-    public static function isExpired($path)
+    public static function isExpired($path): bool
     {
         $compiled = static::getCompiledPath($path);
 
