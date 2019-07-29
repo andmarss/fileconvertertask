@@ -20,7 +20,7 @@ class Request
      * @return string
      * Возвращает чистый uri (убирает боковые слеши)
      */
-    public function uri()
+    protected function uri()
     {
         return trim(
             parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'
@@ -30,7 +30,7 @@ class Request
      * @return string
      * Возвращает полный uri, включая доменное имя
      */
-    public function fullUriWithQuery()
+    protected function fullUriWithQuery()
     {
         return domain() . $this->uri();
     }
@@ -40,9 +40,27 @@ class Request
      *
      * Возвращает метод щапроса (GET или POST)
      */
-    public function method(): string
+    protected function method(): string
     {
        return $_SERVER['REQUEST_METHOD'];
+    }
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function old(string $name): string
+    {
+        if(Session::has('old')) {
+            /**
+             * @var Request $request
+             */
+            $request = Session::flash('old');
+
+            return (string) isset($request->{$name}) ? $request->{$name} : '';
+
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -79,12 +97,21 @@ class Request
 
     /**
      * @param string $name
+     * @return UploadedFile
+     */
+    protected function file(string $name): UploadedFile
+    {
+        return (new UploadedFile($_FILES[$name]));
+    }
+
+    /**
+     * @param string $name
      * @return mixed
      *
      * Возвращает обхект get запроса, включающий в себя все свойства get запроса
      */
 
-    public function get(?string $name = null)
+    protected function get(?string $name = null)
     {
         if($name && isset($_GET[$name])) {
             return $_GET[$name];
@@ -108,7 +135,7 @@ class Request
      *
      * Возвращает обхект post запроса, включающий в себя все свойства post запроса
      */
-    public function post(?string $name = null)
+    protected function post(?string $name = null)
     {
         if($name && isset($_POST[$name])) {
             return $_POST[$name];

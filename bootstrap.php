@@ -1,8 +1,6 @@
 <?php
 
-use App\System\Request;
-use App\System\Template\View;
-use App\System\Router;
+use App\System\{Request,Router,Response,Redirect,Template\View};
 
 /**
  * @return string
@@ -66,7 +64,32 @@ function asset($path): string
     return domain(). '/content/' . $path;
 }
 
-function response()
+/**
+ * @param string $content
+ * @param int $status
+ * @param array $headers
+ * @return Response
+ */
+function response(string $content = '', int $status = 200, array $headers = []): Response
 {
-    return new \App\System\Response();
+    return new Response($content, $status, $headers);
+}
+
+/**
+ * @param string $name
+ * @return string
+ */
+function old(string $name): string
+{
+    return Request::old($name);
+}
+
+/**
+ * @param string $path
+ * @param array $data
+ * @return Redirect
+ */
+function redirect(string $path = '', array $data = []): Redirect
+{
+    return (new Redirect($path, $data));
 }
