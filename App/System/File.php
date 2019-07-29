@@ -138,6 +138,18 @@ class File
     }
 
     /**
+     * Переименовать файл
+     *
+     * @param string $path
+     * @param string $target
+     * @return bool
+     */
+    public static function rename(string $path, string $target): bool
+    {
+        return rename($path, $target);
+    }
+
+    /**
      * Путь к корню директории проекта
      */
 
