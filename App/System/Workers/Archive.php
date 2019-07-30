@@ -13,8 +13,12 @@ class Archive
      * @var \ZipArchive|\RarArchive $archive
      */
     protected $archive;
+    /**
+     * @var string|null $password
+     */
+    protected $password;
 
-    public function __construct(string $path)
+    public function __construct(string $path, ?string $password = null)
     {
         /**
          * @var string $path
@@ -33,6 +37,10 @@ class Archive
             $this->archive = new \RarArchive();
         } else {
             throw new \Exception('Неподдерживаемый тип архива: ' . $this->archiveInfo->extension());
+        }
+
+        if($password) {
+            $this->password = $password;
         }
     }
 
@@ -69,10 +77,68 @@ class Archive
             throw new \Exception("Невозможно открыть архив " . $this->path());
         }
 
-        $this->archive->extractTo($path);
+        for ($i = 0; $i < $this->archive->numFiles; $i++) {
+            $filename = $this->archive->getNameIndex($i);
 
-        $this->archive->close();
+            if($this->isUtf8($filename)) {
+                $name = $this->reconvertUtf8(
+                    $filename
+                );
+
+                $this->archive->renameName($filename, $name);
+
+                $this->archive->extractTo($path, $name);
+            } else {
+                $this->archive->extractTo($path, $filename);
+            }
+        }
+
+        @$this->archive->close();
 
         return $this;
+    }
+
+    /**
+     * @param bool $withoutExtension
+     * @return string
+     */
+    public function name(bool $withoutExtension = false): string
+    {
+       return $this->archiveInfo->name($withoutExtension);
+    }
+    /**
+     * @param string|null $string
+     * @return string
+     */
+    protected function reconvertUtf8(?string $string): string
+    {
+        if(is_string($string) && mb_strlen($string) && $this->isUtf8($string)) {
+            $string = iconv('UTF-8', 'cp437//IGNORE', $string);
+            $string = iconv('cp437', 'cp865//IGNORE', $string);
+            $string = iconv('cp866','UTF-8//IGNORE',$string);
+
+            return $string;
+        } else {
+            $string = iconv('UTF-8', 'cp437//IGNORE', $this->name());
+            $string = iconv('cp437', 'cp865//IGNORE', $string);
+            $string = iconv('cp866','UTF-8//IGNORE',$string);
+
+            return $string;
+        }
+    }
+
+    /**
+     * @param string|null $string
+     * @return bool
+     */
+    protected function isUtf8(?string $string): bool
+    {
+        return mb_strlen($string) > 0
+            ? mb_strtolower(
+                mb_detect_encoding($string)
+            ) === 'utf-8'
+            : mb_strtolower(
+                mb_detect_encoding($this->archiveInfo->name())
+            ) === 'utf-8';
     }
 }

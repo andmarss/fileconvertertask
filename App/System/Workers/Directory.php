@@ -29,29 +29,81 @@ class Directory
     }
 
     /**
-     * @param string|null $mask
+     * @param string $mask
+     * @param bool $searchInnerDirectories
      * @return Directory
      * @throws \Exception
      */
-    public function files(?string $mask = '*'): Directory
+    public function files($mask = '*', bool $searchInnerDirectories = true): Directory
     {
-        /**
-         * @var array $files
-         */
-        $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR . $mask);
         /**
          * @var array $result
          */
         $result = [];
+        /**
+         * @var array $directories
+         */
+        $directories = $this->directories();
 
-        foreach ($files as $file) {
-            if(!is_file($file)) continue;
+        if(is_array($mask)) {
+
+            $mask = '{' . implode(',', $mask) . '}';
+
             /**
-             * @var File $file
+             * @var array $files
              */
-            $file = new File($file);
+            $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR. $mask, GLOB_BRACE);
 
-            $result[] = $file;
+            if(count($files) > 0) {
+
+                foreach ($files as $file) {
+                    if(!is_file($file)) continue;
+                    /**
+                     * @var File $file
+                     */
+                    $file = new File($file);
+
+                    $result[] = $file;
+                }
+
+            }
+
+        } elseif (is_string($mask)) {
+            if(preg_match('/^\{|\}$/', $mask)) {
+                /**
+                 * @var array $files
+                 */
+                $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR . $mask, GLOB_BRACE);
+            } else {
+                /**
+                 * @var array $files
+                 */
+                $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR . $mask);
+            }
+
+            if(count($files) > 0) {
+
+                foreach ($files as $file) {
+                    if(!is_file($file)) continue;
+                    /**
+                     * @var File $file
+                     */
+                    $file = new File($file);
+
+                    $result[] = $file;
+                }
+
+            }
+        }
+
+        if($searchInnerDirectories) {
+            foreach ($directories as $directory) {
+                $innerFiles = $directory->files($mask, false)->all();
+
+                if(count($innerFiles) > 0) {
+                    $result = array_merge($result, $innerFiles);
+                }
+            }
         }
 
         $this->files = $result;
@@ -65,8 +117,8 @@ class Directory
     public function each(\Closure $closure): Directory
     {
        if($this->files){
-           foreach ($this->files as $index => $file) {
-               $closure($file, $index);
+           foreach ($this->files as $index => &$file) {
+               $closure($file, $file->directory(), $index);
            }
        }
 
@@ -74,19 +126,109 @@ class Directory
     }
 
     /**
+     * @param bool $preserve
      * @return Directory
      */
-    public function delete(): Directory
+    public function delete(bool $preserve = false): Directory
     {
-        if(is_dir($this->dirInfo->getRealPath())) {
-            @rmdir($this->dirInfo->getRealPath());
+        if($this->isDir()) {
+
+            foreach ($this->scan() as $item) {
+                if($item->isDir()) {
+                    (new Directory($item->getRealPath()))->delete();
+                } else {
+                    @unlink($item->getRealPath());
+                }
+            }
+
+            if(!$preserve) @rmdir($this->dirInfo->getRealPath());
         }
 
         return $this;
     }
 
-    public function create()
+    /**
+     * @return bool
+     */
+    public function isDir(): bool
     {
+       return is_dir($this->dirInfo->getRealPath());
+    }
 
+    /**
+     * @param string $path
+     * @return Directory
+     */
+    public static function open(string $path): Directory
+    {
+        return new static($path);
+    }
+
+    /**
+     * @return string
+     */
+    public function path(): string
+    {
+       return $this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR;
+    }
+
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+       return count($this->files);
+    }
+
+    public function all(): array
+    {
+       return $this->files;
+    }
+    /**
+     * @return array
+     */
+    public function directories(): array
+    {
+        /**
+         * @var array $result
+         */
+        $result = [];
+        /**
+         * @var array $directories
+         */
+        $directories = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR);
+
+        if($directories) {
+            foreach ($directories as $directory) {
+                /**
+                 * @var Directory $directory
+                 */
+                $directory = new Directory($directory);
+                /**
+                 * @var array $innerDirectories
+                 */
+                $innerDirectories = $directory->directories();
+
+                if($innerDirectories) {
+                    $result[] = $directory;
+
+                    $result = array_merge($result, $innerDirectories);
+                } else {
+                    $result[] = $directory;
+                }
+
+                continue;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return \FilesystemIterator
+     */
+    public function scan(): \FilesystemIterator
+    {
+        return (new \FilesystemIterator($this->dirInfo->getPath()));
     }
 }

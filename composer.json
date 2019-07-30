@@ -11,7 +11,8 @@
         "ext-json": "*",
         "ext-zip": "*",
         "ext-rar": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "ext-iconv": "*"
     },
     "autoload": {
         "psr-4": {

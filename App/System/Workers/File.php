@@ -112,4 +112,83 @@ class File
     {
        return mb_strtolower($this->fileInfo->getExtension());
     }
+
+    /**
+     * @param bool $withoutExtension
+     * @return string
+     */
+    public function name(bool $withoutExtension = false): string
+    {
+       return $withoutExtension
+           ? preg_replace('/\.$/', '', $this->fileInfo->getBasename($this->extension()))
+           : $this->fileInfo->getBasename();
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasCyrillicCharacters(): bool
+    {
+        return (bool) preg_match('/[А-Яа-яЁё]/u', $this->name());
+    }
+
+    /**
+     * @param string $to
+     * @return File
+     * @throws \Exception
+     */
+    public function rename(string $to): File
+    {
+        $pathname = $this->path();
+        $pathWithoutFile = $this->path(true);
+        $newName = $pathWithoutFile . DIRECTORY_SEPARATOR . $to;
+
+        unset($this->fileInfo);
+        unset($this->fileObject);
+
+        $result = rename($pathname, $newName);
+
+        return new static($newName);
+    }
+
+    /**
+     * @param string $content
+     * @return bool
+     */
+    public function contentExist(string $content): bool
+    {
+       if($this->fileInfo->isReadable() && $this->fileInfo->isWritable()) {
+           $fileContent = $this->read();
+
+           return (bool) preg_match_all("/$content/", $fileContent);
+       }
+
+       return false;
+    }
+
+    /**
+     * @return Directory
+     */
+    public function directory(): Directory
+    {
+        return $this->dir;
+    }
+    /**
+     * @param string $string
+     * @return string
+     */
+    public function reconvertUtf8(string $string): string
+    {
+        if(mb_strtolower(
+                mb_detect_encoding($string)
+            ) === 'utf-8') {
+            $string = iconv('UTF-8', 'cp437//IGNORE', $string);
+            $string = iconv('cp437', 'cp865//IGNORE', $string);
+            $string = iconv('cp866','UTF-8//IGNORE',$string);
+
+            return $string;
+        }
+
+        return '';
+    }
 }

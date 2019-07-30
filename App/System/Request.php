@@ -99,7 +99,7 @@ class Request
      * @param string $name
      * @return UploadedFile
      */
-    protected function file(string $name): UploadedFile
+    public function file(string $name): UploadedFile
     {
         return (new UploadedFile($_FILES[$name]));
     }

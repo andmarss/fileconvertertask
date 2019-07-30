@@ -26,7 +26,7 @@ class UploadedFile
      * Возвращает имя файла
      */
 
-    protected function getClientOriginalName()
+    public function getClientOriginalName()
     {
         return basename($this->file->name);
     }

@@ -93,3 +93,50 @@ function redirect(string $path = '', array $data = []): Redirect
 {
     return (new Redirect($path, $data));
 }
+
+/**
+ * Вернуть путь к папке content
+ *
+ * @param string $path
+ * @return string
+ */
+function content_path(string $path = ''): string
+{
+    if($path) {
+        $path = preg_replace('/\/+/', DIRECTORY_SEPARATOR, $path);
+    }
+
+    return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'content' . DIRECTORY_SEPARATOR . $path;
+}
+
+/**
+ * @param string $name
+ * @return string
+ */
+function slug(string $name): string
+{
+    if($name) {
+        /**
+         * @var array $cyrillic
+         */
+        $cyrillic = [
+            'а','б','в','г','д','е','ё','ж','з','и','й','к','л','м','н','о','п',
+            'р','с','т','у','ф','х','ц','ч','ш','щ','ъ','ы','ь','э','ю','я',
+            'А','Б','В','Г','Д','Е','Ё','Ж','З','И','Й','К','Л','М','Н','О','П',
+            'Р','С','Т','У','Ф','Х','Ц','Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я'
+        ];
+        /**
+         * @var array $latin
+         */
+        $latin = [
+            'a','b','v','g','d','e','io','zh','z','i','y','k','l','m','n','o','p',
+            'r','s','t','u','f','h','ts','ch','sh','sht','a','i','y','e','yu','ya',
+            'A','B','V','G','D','E','Io','Zh','Z','I','Y','K','L','M','N','O','P',
+            'R','S','T','U','F','H','Ts','Ch','Sh','Sht','A','I','Y','e','Yu','Ya'
+        ];
+
+        return strtolower(preg_replace('/[\s]+/', '-', str_replace($cyrillic, $latin, $name)));
+    }
+
+    return '';
+}
