@@ -3,6 +3,8 @@
 
 namespace App\System\Workers;
 
+use App\System\Collection;
+
 class Directory
 {
     /**
@@ -31,10 +33,10 @@ class Directory
     /**
      * @param string $mask
      * @param bool $searchInnerDirectories
-     * @return Directory
+     * @return Collection
      * @throws \Exception
      */
-    public function files($mask = '*', bool $searchInnerDirectories = true): Directory
+    public function files($mask = '*', bool $searchInnerDirectories = true): Collection
     {
         /**
          * @var array $result
@@ -105,10 +107,12 @@ class Directory
                 }
             }
         }
+        /**
+         * @var Collection $files
+         */
+        $this->files = collect($result);
 
-        $this->files = $result;
-
-        return $this;
+        return $this->files;
     }
     /**
      * @param \Closure $closure

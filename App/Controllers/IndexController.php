@@ -42,15 +42,19 @@ class IndexController
             /**
              * @var array $files
              */
-            Directory::open($directory)->files([
-                    '*.jpg',
-                    '*.jpeg',
-                    '*.png',
-                    '*.bmp',
-                    '*.gif'
-            ])->each(function (FileWorker $file, Directory $fileDirectory) use ($uploadedFile, $directory) {
+            $files = Directory::open($directory)->files([
+                    '*.[jJ][pP][gG]',
+                    '*.[jJ][pP][eE][gG]',
+                    '*.[pP][nN][gG]',
+                    '*.[bB][mM][pP]',
+                    '*.[gG][iI][fF]'
+            ])->map(function (FileWorker $file) use ($uploadedFile, $directory) {
                 $oldName = $file->name();
-
+                /**
+                 * @var Directory $fileDirectory
+                 */
+                $fileDirectory = $file->directory();
+                // если у файлов есть кирилические символы
                 if($file->hasCyrillicCharacters()) {
                     $slug = slug($file->name());
 
@@ -63,14 +67,20 @@ class IndexController
                     }
 
                     Directory::open($directory)
-                        ->files('*.html')
+                        ->files('*.[hH][tT][mM][lL]')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
                             if($html->contentExist($oldName)) {
                                 $html->replace($oldName, $file->name());
                             }
                         });
                 }
-            });
+
+                return $file;
+            })->all();
+
+            $archive->zip($files);
+
+
         }
     }
 

@@ -81,13 +81,19 @@ class Archive
             $filename = $this->archive->getNameIndex($i);
 
             if($this->isUtf8($filename)) {
-                $name = $this->reconvertUtf8(
-                    $filename
-                );
+                // если есть слеши - то конвертировать имя не нужно
+                if(preg_match('/\-+|\_+/', $filename)) {
+                    $this->archive->extractTo($path, $filename);
+                } else {
+                    // иначе - конвертируем имя
+                    $name = $this->reconvertUtf8(
+                        $filename
+                    );
 
-                $this->archive->renameName($filename, $name);
+                    $this->archive->renameName($filename, $name);
 
-                $this->archive->extractTo($path, $name);
+                    $this->archive->extractTo($path, $name);
+                }
             } else {
                 $this->archive->extractTo($path, $filename);
             }
@@ -105,6 +111,54 @@ class Archive
     public function name(bool $withoutExtension = false): string
     {
        return $this->archiveInfo->name($withoutExtension);
+    }
+
+    /**
+     * @return bool
+     */
+    public function delete(): bool
+    {
+        $path = $this->path();
+        unset($this->archive);
+        unset($this->archiveInfo);
+
+        return unlink($path);
+    }
+    /**
+     * @param array $files
+     * @return $this
+     * @throws \Exception
+     */
+    public function zip(array $files): Archive
+    {
+        if(count($files) === 0) return $this;
+
+        $extension = $this->archiveInfo->extension();
+        $path = $this->path();
+
+        $this->delete();
+
+        if($extension === 'zip') {
+            $this->archive = new \ZipArchive();
+        } elseif ($extension === 'rar') {
+            $this->archive = new \RarArchive();
+        } else {
+            throw new \Exception('Неподдерживаемый тип архива: ' . $extension);
+        }
+
+        if(!$this->archive->open($path, $this->archive::OVERWRITE | $this->archive::CREATE)) {
+            throw new \Exception("Невозможно открыть архив: " . $path);
+        }
+
+        foreach ($files as $file) {
+            $this->archive->addFile($file->path());
+        }
+
+        @$this->archive->close();
+
+        $this->archiveInfo = new File($path);
+
+        return $this;
     }
     /**
      * @param string|null $string

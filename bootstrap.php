@@ -1,6 +1,6 @@
 <?php
 
-use App\System\{Request,Router,Response,Redirect,Template\View};
+use App\System\{Request,Router,Response,Redirect,Template\View, Collection};
 
 /**
  * @return string
@@ -139,4 +139,13 @@ function slug(string $name): string
     }
 
     return '';
+}
+
+/**
+ * @param array $collection
+ * @return Collection
+ */
+function collect(array $collection): Collection
+{
+    return Collection::make($collection);
 }
