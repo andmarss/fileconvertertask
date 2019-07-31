@@ -139,15 +139,26 @@ class File
      */
     public function rename(string $to): File
     {
+        /**
+         * @var string $pathname
+         */
         $pathname = $this->path();
+        /**
+         * Путь к файлу (без файла)
+         * @var string $pathWithoutFile
+         */
         $pathWithoutFile = $this->path(true);
+        /**
+         * Новое имя файла
+         * @var string $newName
+         */
         $newName = $pathWithoutFile . DIRECTORY_SEPARATOR . $to;
 
         unset($this->fileInfo);
         unset($this->fileObject);
 
-        $result = rename($pathname, $newName);
-
+        rename($pathname, $newName);
+        // возвращаем инстанс нового файла
         return new static($newName);
     }
 
@@ -190,5 +201,30 @@ class File
         }
 
         return '';
+    }
+    /**
+     * возвращает размер файла (в байтах)
+     * @return int
+     */
+    public function size(): int
+    {
+        if(file_exists($this->path())) {
+            return filesize($this->path());
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * Удаляет файл
+     * @return bool
+     */
+    public function delete()
+    {
+        $path = $this->path();
+        unset($this->fileObject);
+        unset($this->fileInfo);
+
+        return unlink($path);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\System\{
-    Router,
     Request,
     UploadedFile,
     Workers\Archive,
@@ -28,7 +27,7 @@ class IndexController
         /**
          * @var string $name
          */
-        $name = time() . $uploadedFile->getClientOriginalName();
+        $name = $uploadedFile->getClientOriginalName();
 
         if($uploadedFile->move('uploaded/archives' , $name)) {
 
@@ -39,15 +38,13 @@ class IndexController
              * @var string $directory
              */
             $directory = content_path('uploaded/archives/' . $archive->name(true));
-            /**
-             * @var array $files
-             */
-            $files = Directory::open($directory)->files([
-                    '*.[jJ][pP][gG]',
-                    '*.[jJ][pP][eE][gG]',
-                    '*.[pP][nN][gG]',
-                    '*.[bB][mM][pP]',
-                    '*.[gG][iI][fF]'
+
+            Directory::open($directory)->files([
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'bmp',
+                    'gif'
             ])->map(function (FileWorker $file) use ($uploadedFile, $directory) {
                 $oldName = $file->name();
                 /**
@@ -67,7 +64,7 @@ class IndexController
                     }
 
                     Directory::open($directory)
-                        ->files('*.[hH][tT][mM][lL]')
+                        ->files('html')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
                             if($html->contentExist($oldName)) {
                                 $html->replace($oldName, $file->name());
@@ -76,16 +73,18 @@ class IndexController
                 }
 
                 return $file;
-            })->all();
+            });
 
-            $archive->zip($files);
+            $archive->zip(Directory::open($directory)->files()->all());
 
+            Directory::open($directory)->delete();
 
+            return response()->download($archive->path());
         }
     }
 
-    public function download(Request $request)
+    public function download(Request $request, $path)
     {
-
+        return response()->download(preg_replace('/^\//', '', $path));
     }
 }

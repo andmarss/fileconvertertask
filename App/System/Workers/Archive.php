@@ -3,6 +3,11 @@
 
 namespace App\System\Workers;
 
+/**
+ * Class Archive
+ * @package App\System\Workers
+ */
+
 class Archive
 {
     /**
@@ -52,6 +57,14 @@ class Archive
        return $this->archiveInfo->extension();
     }
 
+    /**
+     * Возвращает полный путь к файлу
+     * Если передан не обязательный параметр $withoutFile
+     * Вернет путь к родительской директории
+     *
+     * @param bool $withoutFile
+     * @return string
+     */
     public function path(bool $withoutFile = false): string
     {
        return $this->archiveInfo->path($withoutFile);
@@ -75,6 +88,10 @@ class Archive
 
         if(!$this->archive->open($this->path())) {
             throw new \Exception("Невозможно открыть архив " . $this->path());
+        }
+
+        if($this->password) {
+            $this->archive->setPassword($this->password);
         }
 
         for ($i = 0; $i < $this->archive->numFiles; $i++) {
@@ -151,7 +168,11 @@ class Archive
         }
 
         foreach ($files as $file) {
-            $this->archive->addFile($file->path());
+            $this->archive->addFile($file->path(), str_replace(
+                static::archivesDirectoryPath(),
+                '',
+                $file->path()
+            ));
         }
 
         @$this->archive->close();
@@ -160,7 +181,17 @@ class Archive
 
         return $this;
     }
+
     /**
+     * @return int
+     */
+    public function size(): int
+    {
+       return $this->archiveInfo->size();
+    }
+    /**
+     * Конвертирует строку так, что бы строка приобрела читаемый вид
+     *
      * @param string|null $string
      * @return string
      */
@@ -182,6 +213,8 @@ class Archive
     }
 
     /**
+     * Проверяет кодировку переданной строки
+     *
      * @param string|null $string
      * @return bool
      */
@@ -194,5 +227,22 @@ class Archive
             : mb_strtolower(
                 mb_detect_encoding($this->archiveInfo->name())
             ) === 'utf-8';
+    }
+
+    /**
+     * Возвращает путь к папке с архивами
+     *
+     * @return string
+     */
+    protected static function archivesDirectoryPath(): string
+    {
+        return \App\System\File::root()
+            . DIRECTORY_SEPARATOR
+            . 'content'
+            . DIRECTORY_SEPARATOR
+            . 'uploaded'
+            . DIRECTORY_SEPARATOR
+            . 'archives'
+            . DIRECTORY_SEPARATOR;
     }
 }

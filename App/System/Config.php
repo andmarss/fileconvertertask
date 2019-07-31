@@ -38,10 +38,10 @@ class Config
      */
     protected static function load(): void
     {
-        $file = File::root() . 'config.php';
+        $file = File::root() . DIRECTORY_SEPARATOR . 'config.php';
 
         if(file_exists($file)) {
-            static::$config = require $file;
+            static::$config = (require $file)['mimes'];
         } else {
             static::$config = [];
         }

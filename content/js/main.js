@@ -5,6 +5,7 @@ var PageClass = function () {
 
     this.states = {};
     this.elements = {};
+    this.methods = {};
 };
 
 PageClass.prototype.helpers = {
@@ -540,17 +541,69 @@ PageClass.prototype.setVars = function () {
     var self = this;
 
     this.page('/', function () {
+        self.el('store-form', $('#store-form'));
 
+        self.el('archive', self.el('store-form').find('#archive'));
+
+        self.el('archive-password-block', self.el('store-form').find('.archive-password'));
+
+        self.el('remove-archive', self.el('store-form').find('#remove-archive'));
+
+        self.el('archive-password', self.el('store-form').find('#archive-password'));
+
+        self.el('archive-name', self.el('store-form').find('.archive-name span'));
+
+        self.el('overlay', $('.overlay'));
+
+        self.el('overlay-text-wrapper', self.el('overlay').find('.overlay-text-wrapper'));
+
+        self.el('overlay-text', self.el('overlay').find('.overlay-text'));
+
+        self.el('overlay-text-content', self.el('overlay').find('.overlay-text .content'));
+
+        self.el('wrapper-dots', self.el('overlay').find('#overlay-text-wrapper-dots'));
+
+        self.el('overlay-text-dots', self.el('overlay').find('#overlay-text-dots'));
+
+        self.el('progress-content', self.el('overlay').find('#progress-content'));
     });
 
     return this;
 };
 
 PageClass.prototype.setStates = function () {
-    var self = this;
-    
-    this.page('/', function () {
 
+    this.page('/', function () {
+        var self = this;
+
+        self.el('store-form').on('submit', function () {
+            if(self.el('archive').get(0).files.length === 0) return;
+
+            setTimeout(function () {
+                self.el('remove-archive').click();
+            }, 100);
+        });
+
+        this.el('remove-archive').on('click', function () {
+            self.el('archive').val('');
+            self.el('archive-password').val('');
+            self.el('archive-name').text('');
+            self.el('archive-password-block').hide();
+            self.el('remove-archive').hide();
+        });
+
+        self.el('archive').on('change', function () {
+            if(self.el('archive').val().length === 0) return;
+
+            self.el('archive-password-block').show();
+
+            var filename = self.el('archive').val();
+            var index = filename.lastIndexOf('\\') > -1 ? filename.lastIndexOf('\\') : filename.lastIndexOf('/');
+            filename = filename.slice(index+1);
+
+            self.el('archive-name').text(filename);
+            self.el('remove-archive').show();
+        });
     });
 
     return this;

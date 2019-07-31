@@ -27,7 +27,11 @@ class Directory
             mkdir($path, 0777, true);
         }
 
-        $this->dirInfo = new \DirectoryIterator($path);
+        try {
+            $this->dirInfo = new \DirectoryIterator($path);
+        } catch (\Exception $e) {
+            die(var_dump($e->getMessage()));
+        }
     }
 
     /**
@@ -43,61 +47,35 @@ class Directory
          */
         $result = [];
         /**
+         * вложенные директории
          * @var array $directories
          */
-        $directories = $this->directories();
+        $directories = $this->directories($searchInnerDirectories)->all();
+
+        $files = new \FilesystemIterator($this->path(), \FilesystemIterator::SKIP_DOTS);
 
         if(is_array($mask)) {
-
-            $mask = '{' . implode(',', $mask) . '}';
-
-            /**
-             * @var array $files
-             */
-            $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR. $mask, GLOB_BRACE);
-
-            if(count($files) > 0) {
-
-                foreach ($files as $file) {
-                    if(!is_file($file)) continue;
-                    /**
-                     * @var File $file
-                     */
-                    $file = new File($file);
-
-                    $result[] = $file;
-                }
-
-            }
-
-        } elseif (is_string($mask)) {
-            if(preg_match('/^\{|\}$/', $mask)) {
-                /**
-                 * @var array $files
-                 */
-                $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR . $mask, GLOB_BRACE);
-            } else {
-                /**
-                 * @var array $files
-                 */
-                $files = glob($this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR . $mask);
-            }
-
-            if(count($files) > 0) {
-
-                foreach ($files as $file) {
-                    if(!is_file($file)) continue;
-                    /**
-                     * @var File $file
-                     */
-                    $file = new File($file);
-
-                    $result[] = $file;
-                }
-
-            }
+            $mask = implode(',', $mask);
         }
 
+        foreach ($files as $file) {
+            if($file->isDir()) {
+                continue;
+            } else {
+                if(file_exists($file->getRealPath())) {
+                    // если маска - строка *
+                    // то возвращаем ВСЕ файлы
+                    if($mask === '*') {
+                        $result[] = new File($file->getRealPath());
+                        // иначе проверяем расширение файла
+                    } elseif (strpos($mask, strtolower($file->getExtension())) !== false) {
+                        $result[] = new File($file->getRealPath());
+                    }
+                }
+            }
+        }
+        // $searchInnerDirectories - это условие только для корневой папки
+        // остальные (вложенные) папки не должны дублировать файлы
         if($searchInnerDirectories) {
             foreach ($directories as $directory) {
                 $innerFiles = $directory->files($mask, false)->all();
@@ -114,38 +92,33 @@ class Directory
 
         return $this->files;
     }
-    /**
-     * @param \Closure $closure
-     * @return Directory
-     */
-    public function each(\Closure $closure): Directory
-    {
-       if($this->files){
-           foreach ($this->files as $index => &$file) {
-               $closure($file, $file->directory(), $index);
-           }
-       }
-
-       return $this;
-    }
 
     /**
      * @param bool $preserve
      * @return Directory
+     * @throws \Exception
      */
     public function delete(bool $preserve = false): Directory
     {
         if($this->isDir()) {
+            /**
+             * @var Collection $files
+             */
+            $files = $this->files();
+            // сперва удаляем все файлы
+            if($files && $files->count() > 0) {
+                $files->each(function (File $file) {
+                    $file->delete();
+                });
 
-            foreach ($this->scan() as $item) {
-                if($item->isDir()) {
-                    (new Directory($item->getRealPath()))->delete();
-                } else {
-                    @unlink($item->getRealPath());
-                }
+                unset($this->files);
+                unset($files);
+            } else {
+                unset($this->files);
+                unset($files);
             }
-
-            if(!$preserve) @rmdir($this->dirInfo->getRealPath());
+            // после этого рекурсивно удаляем все папки
+            $this->recursiveDeleteDirectory($this->path(), $preserve);
         }
 
         return $this;
@@ -176,22 +149,14 @@ class Directory
        return $this->dirInfo->getRealPath() . DIRECTORY_SEPARATOR;
     }
 
-    /**
-     * @return int
-     */
-    public function count(): int
-    {
-       return count($this->files);
-    }
-
     public function all(): array
     {
        return $this->files;
     }
     /**
-     * @return array
+     * @return Collection
      */
-    public function directories(): array
+    public function directories(): Collection
     {
         /**
          * @var array $result
@@ -204,35 +169,50 @@ class Directory
 
         if($directories) {
             foreach ($directories as $directory) {
-                /**
-                 * @var Directory $directory
-                 */
-                $directory = new Directory($directory);
-                /**
-                 * @var array $innerDirectories
-                 */
-                $innerDirectories = $directory->directories();
+                if(is_dir($directory)) {
+                    /**
+                     * @var Directory $directory
+                     */
+                    $directory = new Directory($directory);
 
-                if($innerDirectories) {
-                    $result[] = $directory;
+                    /**
+                     * @var array $innerDirectories
+                     */
+                    $innerDirectories = $directory->directories()->all();
+                    // если есть вложенные директории
+                    // то добавляем текущую директорию и вложенные
+                    if($innerDirectories) {
+                        $result[] = $directory;
 
-                    $result = array_merge($result, $innerDirectories);
-                } else {
-                    $result[] = $directory;
+                        $result = array_merge($result, $innerDirectories);
+                    } else { // иначе - только текущую директорию
+                        $result[] = $directory;
+                    }
+
+                    continue;
                 }
-
-                continue;
             }
         }
 
-        return $result;
+        return collect($result);
     }
-
     /**
-     * @return \FilesystemIterator
+     * @param string $path
+     * @param bool $preserve
      */
-    public function scan(): \FilesystemIterator
+    protected function recursiveDeleteDirectory(string $path, bool $preserve = false)
     {
-        return (new \FilesystemIterator($this->dirInfo->getPath()));
+        /**
+         * @var array $directories
+         */
+        $directories = glob($path . '*', GLOB_MARK | GLOB_ONLYDIR);
+
+        foreach ($directories as $directory) {
+            if(is_dir($directory)) {
+                $this->recursiveDeleteDirectory($directory);
+            }
+        }
+
+        if(!$preserve) @rmdir($path);
     }
 }

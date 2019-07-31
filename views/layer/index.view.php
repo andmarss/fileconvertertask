@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{asset('css/main.css')}}">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
     <script src="https://use.fontawesome.com/a1ec3b6463.js"></script>
-    <title>{{isset($document) ? $document : 'Задачник'}}</title>
+    <title>{{isset($document) ? $document : 'Архивчик'}}</title>
 </head>
 <body>
 @import('includes/navbar')
@@ -19,7 +19,6 @@
 @yield('overlay')
 
 <script src="{{asset('js/app.js')}}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
 <script src="{{asset('js/main.js')}}"></script>
 
 @yield('scripts')

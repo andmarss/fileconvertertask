@@ -1,4 +1,4 @@
-<div class="overlay hidden">
+<div class="overlay" style="display: none">
     <div class="overlay-content">
         <div class="loader-wrapper">
             <svg
@@ -6,7 +6,7 @@
                 style="width: 30px"
                 viewBox="0 0 120 30"
                 xmlns="http://www.w3.org/2000/svg"
-                fill={this.fillColor}
+                fill="white"
             >
                 <circle cx="15" cy="15" r="15">
                     <animate
@@ -76,10 +76,10 @@
                 </circle>
             </svg>
         </div>
-        <div class="overlay-text-wrapper hidden">
-            <p class="overlay-text"><span class="content"></span><span id="dots"></span></p>
+        <div class="overlay-text-wrapper" style="display: none">
+            <p class="overlay-text"><span class="content"></span><span id="overlay-text-wrapper-dots"></span></p>
             <p id="progress-content"></p>
         </div>
-        <p class="overlay-text hidden">Подождите, идет загрузка<span id="dots"></span></p>
+        <p class="overlay-text" style="display: none">Подождите, идет загрузка<span id="overlay-text-dots"></span></p>
     </div>
 </div>

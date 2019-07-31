@@ -3,7 +3,17 @@
 
 namespace App\System;
 
+use App\System\File;
 use App\System\Template\View;
+use App\System\Workers\File as FileWorker;
+
+/**
+ * Class Response
+ * @package App\System
+ *
+ * @property int $status
+ * @property mixed $content
+ */
 
 class Response
 {
@@ -76,6 +86,14 @@ class Response
      * @var Header $header
      */
     protected $header;
+    /**
+     * @var string DISPOSITION_ATTACHMENT
+     */
+    const DISPOSITION_ATTACHMENT = 'attachment';
+    /**
+     * @var string DISPOSITION_INLINE
+     */
+    const DISPOSITION_INLINE = 'inline';
 
     public function __construct(?string $content = '', $status = 200, $headers = [])
     {
@@ -154,11 +172,52 @@ class Response
         return $this;
     }
 
+    /**
+     * @param string $path
+     * @param string|null $name
+     * @param array $headers
+     * @throws \Exception
+     */
+    public function download(string $path, ?string $name = null, array $headers = []): void
+    {
+        if(is_null($name)) $name = basename($path);
+
+        $file = new FileWorker($path);
+
+        /**
+         * @var array $headers
+         */
+        $headers = array_merge([
+            'Content-Description'       => 'File Transfer',
+            'Content-Type'              => File::mime($file->extension()),
+            'Content-Transfer-Encoding' => 'Binary',
+            'Expires'                   => 0,
+            'Cache-Control'             => 'must-revalidate, post-check=0, pre-check=0',
+            'Pragma'                    => 'public',
+            'Content-Length'            => $file->size(),
+            'Content-Disposition'       => sprintf('%s; filename=%s', static::DISPOSITION_ATTACHMENT, $name)
+        ], $headers);
+
+        $response = new static(File::get(str_replace(File::root(), '', $file->path())), 200, $headers);
+
+        $response->send();
+
+        readfile($path);
+    }
+
+    /**
+     * @param string $method
+     * @param array $arguments
+     * @return mixed
+     */
     public static function __callStatic(string $method, array $arguments)
     {
         return (new static())->{$method}(...$arguments);
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
        return $this->send();

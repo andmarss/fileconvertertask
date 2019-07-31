@@ -3,8 +3,6 @@
 @section('content')
     <div class="container">
         @import('form/index')
-
-        @import('includes/loaded-archives')
     </div>
 @endsection
 

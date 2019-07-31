@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 use App\System\{Request,Router,Response,Redirect,Template\View, Collection};
 
 /**
@@ -130,9 +132,9 @@ function slug(string $name): string
          */
         $latin = [
             'a','b','v','g','d','e','io','zh','z','i','y','k','l','m','n','o','p',
-            'r','s','t','u','f','h','ts','ch','sh','sht','a','i','y','e','yu','ya',
+            'r','s','t','u','f','h','ts','ch','sh','sht','a','i','\'','e','yu','ya',
             'A','B','V','G','D','E','Io','Zh','Z','I','Y','K','L','M','N','O','P',
-            'R','S','T','U','F','H','Ts','Ch','Sh','Sht','A','I','Y','e','Yu','Ya'
+            'R','S','T','U','F','H','Ts','Ch','Sh','Sht','A','I','\'','e','Yu','Ya'
         ];
 
         return strtolower(preg_replace('/[\s]+/', '-', str_replace($cyrillic, $latin, $name)));
