@@ -15,7 +15,7 @@
 
             <div class="form-group archive-password" style="display: none">
                 <label for="archive-password">Если архив защищен паролем, введите его в поле ниже</label>
-                <input type="password" id="archive-password" class="form-control" name="archive-password" placeholder="Пароль для архива">
+                <input type="password" id="archive-password" class="form-control" name="password" placeholder="Пароль для архива">
             </div>
 
             <div class="form-group">

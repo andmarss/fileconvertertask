@@ -35,6 +35,10 @@ class Template
     {
         $file = null;
 
+        if(!is_dir(File::cachePath())) {
+            mkdir(File::cachePath(), 0777, true);
+        }
+
         if ( !File::exists( File::getCompiledPath( $path ) ) || File::isExpired( $path ) ) { // если отсутствует скомилированный файл, или исходный файл был изменен
             $parsed =  $this->compile( File::get( $path ) ); // получаем из папки views
 
