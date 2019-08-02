@@ -422,7 +422,7 @@ class Router
         if($m && isset($m[0])) {
             return count(
                 array_filter(array_map(function (array $match){
-                    return (bool) $match[0];
+                    return (bool) isset($match[0]) ? $match[0] : false;
                 }, array_slice($m, 1)), function (bool $match){
                     return $match;
                 })

@@ -47,6 +47,58 @@ class File
     }
 
     /**
+     * Сравнивает путь файла с путем, переданным параметром $compareWith
+     * Возвращает относительный путь к текущему файлу
+     *
+     * @param string $compareWith
+     * @return string
+     */
+    public function relativePath(string $compareWith): string
+    {
+        /**
+         * @var string $path
+         */
+        $path = $this->path(true);
+        /**
+         * @var string $realpath
+         */
+        $realpath = '';
+        /**
+         * @var array $from
+         */
+        $from = explode( DIRECTORY_SEPARATOR, $compareWith );
+        /**
+         * @var array $to
+         */
+        $to = explode( DIRECTORY_SEPARATOR, $path );
+        /**
+         * @var int $i
+         */
+        $i = 0;
+        // находим место, где пути расходятся
+        while ( isset($from[$i]) && isset($to[$i]) ) {
+            if ( $from[$i] != $to[$i] ) break;
+            $i++;
+        }
+        /**
+         * @var int $j
+         */
+        $j = count( $from ) - 1;
+        // Добавляем .. пока пути не станут одинаковыми
+        while ($i <= $j) {
+            if( !empty($from[$j]) ) $realpath .= '..' . '/';
+            $j--;
+        }
+        // Идем от совпадающей с путями папку до той, которая нужна
+        while ( isset( $to[$i] ) ) {
+            if( !empty( $to[$i] ) ) $realpath .= $to[$i] . '/';
+            $i++;
+        }
+        // возвращаем относительный путь
+        return $realpath . $this->name();
+    }
+
+    /**
      * @return string
      */
     public function read(): string
@@ -61,17 +113,23 @@ class File
     /**
      * @param string $find
      * @param string $replace
+     * @param bool $useRegexp
      * @return File
      */
-    public function replace(string $find, string $replace): File
+    public function replace(string $find, string $replace, bool $useRegexp = false): File
     {
         if($this->fileInfo->isReadable() && $this->fileInfo->isWritable()) {
             /**
              * @var string $content
              */
             $content = $this->read();
-
-            $content = str_replace($find, $replace, $content);
+            // если $useRegexp === true
+            // значит, первым аргументом передается паттерн
+            if($useRegexp) {
+                $content = preg_replace('/' . $find . '/', $replace, $content);
+            } else {
+                $content = str_replace($find, $replace, $content);
+            }
 
             $this->write($content);
         }

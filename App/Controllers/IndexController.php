@@ -33,7 +33,7 @@ class IndexController
 
             $archive = new Archive(content_path('uploaded/archives/' . $name));
 
-            $archive->unzip(content_path('uploaded/archives/' . $archive->name(true)));
+            $archive->unzip(content_path('uploaded/archives'));
             /**
              * @var string $directory
              */
@@ -67,7 +67,21 @@ class IndexController
                         ->files('html')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
                             if($html->contentExist($oldName)) {
-                                $html->replace($oldName, $file->name());
+                                $html->replace(
+                                    'src\=[\'|\"](.*?)(' .$oldName . ')[\'|\"]',
+                                    'src="' .$file->relativePath($html->path(true)) . '"',
+                                    true);
+                            }
+                        });
+                } else {
+                    Directory::open($directory)
+                        ->files('html')
+                        ->each(function (FileWorker $html) use ($file, $oldName) {
+                            if($html->contentExist($oldName)) {
+                                $html->replace(
+                                    'src\=[\'|\"](.*?)(' .$oldName . ')[\'|\"]',
+                                    'src="' .$file->relativePath($html->path(true)) . '"',
+                                    true);
                             }
                         });
                 }
