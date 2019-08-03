@@ -38,8 +38,12 @@ class IndexController
              * @var string $directory
              */
             $directory = content_path('uploaded/archives/' . $archive->name(true));
+            /**
+             * @var Directory $directory
+             */
+            $directory = Directory::open($directory);
 
-            Directory::open($directory)->files([
+            $directory->files([
                     'jpg',
                     'jpeg',
                     'png',
@@ -63,24 +67,24 @@ class IndexController
                         $file = $file->rename($slug);
                     }
 
-                    Directory::open($directory)
+                    $directory
                         ->files('html')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
                             if($html->contentExist($oldName)) {
                                 $html->replace(
                                     'src\=[\'|\"](.*?)(' .$oldName . ')[\'|\"]',
-                                    'src="' .$file->relativePath($html->path(true)) . '"',
+                                    sprintf("src=\"%s\"", $file->relativePath($html->path(true))),
                                     true);
                             }
                         });
                 } else {
-                    Directory::open($directory)
+                    $directory
                         ->files('html')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
                             if($html->contentExist($oldName)) {
                                 $html->replace(
                                     'src\=[\'|\"](.*?)(' .$oldName . ')[\'|\"]',
-                                    'src="' .$file->relativePath($html->path(true)) . '"',
+                                    sprintf("src=\"%s\"", $file->relativePath($html->path(true))),
                                     true);
                             }
                         });
@@ -89,9 +93,9 @@ class IndexController
                 return $file;
             });
 
-            $archive->zip(Directory::open($directory)->files()->all());
+            $archive->zip($directory->files()->all());
 
-            Directory::open($directory)->delete();
+            $directory->delete();
 
             return response()->download($archive->path());
         }
