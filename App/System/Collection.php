@@ -341,7 +341,7 @@ class Collection
 
     public function last()
     {
-        return count((array) $this->collection) > 0 ? array_slice((array) $this->collection, -1) : null;
+        return count((array) $this->collection) > 0 ? current(array_slice((array) $this->collection, -1)) : null;
     }
 
     /**

@@ -58,15 +58,47 @@ class IndexController
                 // если у файлов есть кирилические символы
                 if($file->hasCyrillicCharacters()) {
                     $slug = slug($file->name());
-
+                    // если файл с таким именем уже существует
                     if(File::exists($fileDirectory->path() . $slug)) {
-                        $slug = time() . $slug;
+                        // фильтруем файлы из директории по регулярному выражению
+                        $filtered = $fileDirectory
+                            ->files($file->extension())
+                            ->filter(function (FileWorker $directory_file) use ($file){
+                                return (bool) preg_match('/' . slug($file->name(true) . '\_\d+/'), $directory_file->name());
+                            });
+                        // если файлы по такому паттерну есть
+                        if($filtered->count() > 0) {
+                            /**
+                             * Получаем последнее изображение
+                             * @var FileWorker $last
+                             */
+                            $last = $filtered->last();
+                            // ищем число в его имени, например kartinka_01.jpeg
+                            preg_match('/\d+/', $last->name(), $m);
+                            /**
+                             * преобразуем строку в число
+                             * @var int $num
+                             */
+                            $num = intval($m[0]);
+                            // если число меньше 10, то подставляем 0 перед ним
+                            if($num < 10) {
+                                $num = sprintf("0%d", ++$num);
+                            } else { // иначе - просто инкрементируем
+                                $num = ++$num;
+                            }
+                            // получаем новое имя файла
+                            $slug = sprintf("%s_%d.%s", slug($file->name(true)), $num, $file->extension());
+                        } else { // если файлов с таким именем нет - то добавляем суффикс _01
+                            $slug = sprintf("%s_01.%s", slug($file->name(true)), $file->extension());
+                        }
 
                         $file = $file->rename($slug);
                     } else {
                         $file = $file->rename($slug);
                     }
-
+                    // находим все html файлы
+                    // проверяем, есть ли там изображение со старым наименованием файла
+                    // если да - меняем старое наименование на новое, и исправляем путь на относительный
                     $directory
                         ->files('html')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
@@ -77,7 +109,7 @@ class IndexController
                                     true);
                             }
                         });
-                } else {
+                } else { // если кирилических символов нет - просто изменяем путь на правильный (относительный)
                     $directory
                         ->files('html')
                         ->each(function (FileWorker $html) use ($file, $oldName) {
