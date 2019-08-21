@@ -82,12 +82,12 @@ class IndexController
                             $num = intval($m[0]);
                             // если число меньше 10, то подставляем 0 перед ним
                             if($num < 10) {
-                                $num = sprintf("0%d", ++$num);
+                                $num = sprintf("%02d", ++$num);
                             } else { // иначе - просто инкрементируем
-                                $num = ++$num;
+                                $num = (string) ++$num;
                             }
                             // получаем новое имя файла
-                            $slug = sprintf("%s_%d.%s", slug($file->name(true)), $num, $file->extension());
+                            $slug = sprintf("%s_%s.%s", slug($file->name(true)), $num, $file->extension());
                         } else { // если файлов с таким именем нет - то добавляем суффикс _01
                             $slug = sprintf("%s_01.%s", slug($file->name(true)), $file->extension());
                         }
